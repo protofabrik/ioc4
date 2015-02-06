@@ -1,39 +1,9 @@
 
 #include <pv/pvTimeStamp.h>
 #include "ioc4.h"
+#include "iocUtils.h"
+#include <pv/channelProviderLocal.h>
 
-
-class ioc4PutLink{
-public:
-    PVRecordFieldPtr src, dest;
-    PVTimeStamp destTimestamp;
-    TimeStamp t;
-
-    ioc4PutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),dest(dest){
-        assert(src.get());
-        assert(dest.get());
-
-        //Get source record
-        iocRecordPtr srcRecord = dynamic_pointer_cast<iocRecord>(src->getPVRecord());
-
-
-        //Check if dest is structure
-//        if(destTimestamp.attach(dest->getParent()->getPVStructure()->getSubField("timestamp"))){
-//               cout <<"VALID TIMESTAMP"<<endl;
-//         }
-
-
-        srcRecord->addFieldHandler(src,[this](PVRecordFieldPtr const arg){
-            cout << "PUT LINK!" << endl;
-            getConvert()->copy(this->src->getPVField(),this->dest->getPVField());
-
-            if(this->destTimestamp.isAttached()){
-                this->t.getCurrent();
-                this->destTimestamp.set(t);
-            }
-        });
-    }
-};
 
 class scanRecord : public iocRecord{
 public:
@@ -42,7 +12,6 @@ public:
      * @return
      */
     static StructureConstPtr getForm(){
-        cout << "GET FORM!" << endl;
         return getFieldCreate()->createFieldBuilder()->
                 add("value",pvInt)->
                 add("timestamp",getStandardField()->timeStamp())->
@@ -110,7 +79,7 @@ private:
 
     void onValueChange(PVRecordFieldPtr const field){
         lock();
-        cout << "SCAN RECORD" << endl;
+//        cout << "SCAN RECORD" << endl;
         unlock();
     }
 };
@@ -129,7 +98,7 @@ void testStandardRecord(){
 
 //        iocRecordPtr record = static_pointer_cast<iocRecord>(field->getPVRecord());
 
-//        PVStringPtr value = record->data->getStringField("value");
+//        PVStringPtr value = record->data->getSttringField("value");
 //        PVScalarArrayPtr data = record->data->getScalarArrayField("data",pvByte);
 
 //        string strVal;
@@ -160,7 +129,7 @@ int main(int argc, char** argv){
 
     //Set records fields
     ioc->setStagingField("S1.timestamp","100 0 23");
-    ioc->setStagingField("S1.rate","3");
+    ioc->setStagingField("S1.rate","2");
     ioc->setStagingField("S1.desc","HelloWorld");
 
     //Intiate record with SCAN implementation
@@ -176,21 +145,22 @@ int main(int argc, char** argv){
     //Initiate record without implementation (placeholder)
     iocRecordPtr TEST2 = ioc->initRecord("","TEST2");
 
-    ioc->createRecord("TEST3",record_form);
-    iocRecordPtr TEST3 = ioc->initRecord("","TEST3");
 
-    //Manually create a a few put links
-    ioc4PutLink link(S1->findPVRecordFieldByName("value"),TEST2->findPVRecordFieldByName("value"));
-//    ioc4PutLink link1(S1->findPVRecordFieldByName("value"),TEST3->findPVRecordFieldByName("value"));
+    ioc->addLink("S1.value","TEST2.value","");
+    ioc->addLink("S1.timestamp","TEST2.timestamp","PUT");
 
-    ioc4PutLink link2(ioc->findField("S1.timestamp"),ioc->findField("TEST3.timestamp"));
-
-
-
-    ioc->findField("S1.value")->getPVField()->dumpValue(cout);
+    //Print database contents
+    iocUtils::printDatabase(cout);
+    iocUtils::monitorField("TEST2.timestamp.nanoseconds",cout);
 
 
 
+//    ChannelProviderLocalPtr local = getChannelProviderLocal();
+
+
+//    Channel::shared_pointer c = local->createChannel("S1",ChannelRequester::shared_pointer(new ChannelRequesterImpl(false)),0);
+
+//    c->printInfo();
 
 
     ioc->startPVAccess();

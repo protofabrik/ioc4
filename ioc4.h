@@ -18,7 +18,8 @@
 
 #include <pv/pvDatabase.h>
 
-#define CALLTRACE cout << __PRETTY_FUNCTION__  << " called" << endl;
+//#define CALLTRACE cout << __PRETTY_FUNCTION__  << " called" << endl;
+#define CALLTRACE
 
 
 using namespace epics::pvData;
@@ -28,10 +29,22 @@ using namespace epics::pvAccess;
 using namespace std::tr1;
 using namespace std;
 
+
+class iocPutLink;
+typedef std::tr1::shared_ptr<iocPutLink> iocPutLinkPtr;
+
+class iocPutLink{
+public:
+    PVRecordFieldPtr src, dest;
+//    PVTimeStamp destTimestamp;
+//    TimeStamp t;
+
+    iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest);
+};
+
+
 class iocRecord;
 typedef std::tr1::shared_ptr<iocRecord> iocRecordPtr;
-
-
 class iocRecord : public PVRecord{
 public:
 
@@ -49,27 +62,14 @@ public:
         PVRecord::init();
     }
 
-    inline PVRecordFieldPtr findPVRecordFieldByName(string field){
-        PVFieldPtr data = getPVStructure()->getSubField(field);
-
-        if(!data) throw runtime_error(("Field "+field+" does not exist in record " + getRecordName()));
-
-        PVRecordFieldPtr fieldPtr = findPVRecordField(data);
-        return fieldPtr;
-    }
-
-    inline PVFieldPtr findPVFieldByName(string fieldName){
-        return getPVStructure()->getSubField(fieldName);
-    }
-
+    PVRecordFieldPtr findPVRecordFieldByName(string field);
 
     void addFieldHandler(PVRecordFieldPtr field ,function<void(PVRecordFieldPtr const)> listner);
 
 
-
-
-
 };
+
+
 
 #include "pvutils.h"
 class ioc4{
@@ -81,22 +81,21 @@ public:
 
 
 
+    /**Record creation **/
     iocRecordPtr initRecord(string type, string name);
     PVStructurePtr createRecord(string type, string name);
-
     PVStructurePtr createRecord(string name, StructureConstPtr def);
 
-    iocRecordPtr findRecord(string name){
-        PVDatabasePtr db = PVDatabase::getMaster();
-        PVRecordPtr record = db->findRecord(name);
-        return dynamic_pointer_cast<iocRecord>(record);
-    }
-
+    /**Record and field find utilities **/
+    iocRecordPtr findRecord(string name);
     PVRecordFieldPtr findField(string name);
 
+    /**Field modifications **/
     void setField(string name, string value);
-
     void setStagingField(string name, string value);
+
+    /**Link creation **/
+    void addLink(string from,string to,string specifications);
 
     void startPVAccess();
     void stopPVAccess();
@@ -114,6 +113,9 @@ private:
 
     //Staging database
     map<string,PVStructurePtr> stagingDb;
+
+    //Links
+    vector<iocPutLinkPtr> putLinks;
 
     // Factories
     map<string,function<iocRecordPtr(string,PVStructurePtr)>> recordFactories;
