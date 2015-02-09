@@ -4,174 +4,85 @@
 #include "iocUtils.h"
 #include <pv/channelProviderLocal.h>
 
+#include <lua.hpp>
 
-class scanRecord : public iocRecord{
+#include "std/standardRecords.h"
+
+#include <time.h>
+#include <functional>
+
+
+class PerfRecord{
 public:
-    /**
-     * @brief getForm defines records mandatory fields
-     * @return
-     */
-    static StructureConstPtr getForm(){
-        return getFieldCreate()->createFieldBuilder()->
-                add("value",pvInt)->
-                add("timestamp",getStandardField()->timeStamp())->
-                add("rate",pvDouble)->
-                createStructure();
+
+    static void bindRecord(iocRecordPtr record){
+        new PerfRecord(record);
     }
-
-    /**
-     * @brief createRecord creates and instance of default record
-     * @param name
-     * @return
-     */
-    static iocRecordPtr createRecord(string name,PVStructurePtr data){
-        return iocRecordPtr(new scanRecord(name,data));
-
-    }
-
-    scanRecord(string name, PVStructurePtr data):iocRecord(name,data){
-    }
-
-    bool init(){
-        iocRecord::init();
-
-        //Copy pointers to fields so we don't have to look them up every time
-        VALUE = data->getIntField("value");
-        TIMESTAMP = data->getStructureField("timestamp");
-        RATE = data->getDoubleField("rate");
-
-        //Check if values make sense/set default vals
-        if(!RATE->get()) RATE->put(1);
-
-        addFieldHandler(findPVRecordField(VALUE),bind(&scanRecord::onValueChange,this,placeholders::_1));
-
-        string threadName = getRecordName()+"_scanThread";
-        epicsThreadCreate(threadName.c_str(),50,epicsThreadStackMedium,&scanRecord::scanThread,this);
-    }
-
-
-    PVIntPtr VALUE;
-    PVStructurePtr TIMESTAMP;
-    PVDoublePtr RATE;
-
 
 private:
+    PVDoublePtr m_in;
+    PVDoublePtr m_out;
+    PVDoublePtr m_perf; //in us
 
-    static void scanThread(void* arg){
-        scanRecord* r = static_cast<scanRecord*>(arg);
-        TimeStamp t;
-        PVTimeStamp pvT;
-        pvT.attach(r->TIMESTAMP);
+    PerfRecord(iocRecordPtr record){
+        m_in = dynamic_pointer_cast<PVDouble>(record->findPVRecordFieldByName("in")->getPVField());
+        m_out = dynamic_pointer_cast<PVDouble>(record->findPVRecordFieldByName("out")->getPVField());
+        m_perf = dynamic_pointer_cast<PVDouble>(record->findPVRecordFieldByName("perf")->getPVField());
 
-
-        while(1){
-            r->lock();
-            r->VALUE->put(r->VALUE->get()+1);
-
-            t.getCurrent();
-            pvT.set(t);
-
-            r->unlock();
-
-            epicsThreadSleep(r->RATE->get());
-        }
+        record->addFieldHandler(record->findPVRecordFieldByName("in"),bind(&PerfRecord::process,this));
     }
 
-    void onValueChange(PVRecordFieldPtr const field){
-        lock();
-//        cout << "SCAN RECORD" << endl;
-        unlock();
+    void process(){
+        struct timespec t_proc_start,t_proc_end;
+
+        //execute link and measure time
+        clock_gettime(CLOCK_MONOTONIC,&t_proc_start);
+        m_out->put(0.0); //no value
+        clock_gettime(CLOCK_MONOTONIC,&t_proc_end);
+        //write out the results
+        double proc_t = (t_proc_end.tv_sec*1e6 + t_proc_end.tv_nsec/1e3) - (t_proc_start.tv_sec*1e6+t_proc_start.tv_nsec/1e3);
+//        printf("%fus\n",proc_t);
+        m_perf->put(proc_t);
     }
+
 };
 
-void testStandardRecord(){
-
-//    //----------Test standard records-----------//
-//    //Create record form
-//    StructureConstPtr form = getFieldCreate()->createFieldBuilder()->add("value",pvString)->addArray("data",pvByte)->createStructure();
-//    //Create standard record from form
-////    iocRecordPtr record = ioc4::getIoc()->createRecordF("STDIN",form);
-
-
-//    //Add data handler
-//    record->addFieldHandler(record->findPVRecordFieldByName("data"),[](PVRecordFieldPtr const field){
-
-//        iocRecordPtr record = static_pointer_cast<iocRecord>(field->getPVRecord());
-
-//        PVStringPtr value = record->data->getSttringField("value");
-//        PVScalarArrayPtr data = record->data->getScalarArrayField("data",pvByte);
-
-//        string strVal;
-//        getConvert()->getString(&strVal,data);
-
-//        value->put(strVal);
-//    });
-
-}
-
-void testStandardRecord2(){
-
-
-}
 
 int main(int argc, char** argv){
 
-
-//    PVStructurePtr req = CreateRequest::create()->createRequest("process=true,field(test,data)");
-
-    ioc4* ioc = ioc4::getIoc();
-
-    //Register components
-    ioc->addFactory("SCAN",&scanRecord::createRecord,&scanRecord::getForm);
-
-    //Create a record using factory
-    ioc->createRecord("SCAN","S1");
-
-    //Set records fields
-    ioc->setStagingField("S1.timestamp","100 0 23");
-    ioc->setStagingField("S1.rate","2");
-    ioc->setStagingField("S1.desc","HelloWorld");
-
-    //Intiate record with SCAN implementation
-    iocRecordPtr S1 = ioc->initRecord("SCAN","S1");
-
-    //Create record using form defintion
-    StructureConstPtr record_form = getFieldCreate()->createFieldBuilder()
-            ->add("value",pvDouble)
-            ->add("timestamp",getStandardField()->timeStamp())
-            ->createStructure();
-
-    ioc->createRecord("TEST2",record_form);
-    //Initiate record without implementation (placeholder)
-    iocRecordPtr TEST2 = ioc->initRecord("","TEST2");
+    StandardRecords::registerStandardRecords();
+    ioc4::getIoc()->addComponentFacotry("PERF",PerfRecord::bindRecord);
 
 
-    ioc->addLink("S1.value","TEST2.value","");
-    ioc->addLink("S1.timestamp","TEST2.timestamp","PUT");
+    ioc4s::init();
+    ioc4s::createRecord("TEST:SCAN","STD::SCAN");
+    ioc4s::setStagingField("TEST:SCAN.rate","0.1");
+    ioc4s::bindRecord("TEST:SCAN","STD::SCAN");
 
-    //Print database contents
-    iocUtils::printDatabase(cout);
-    iocUtils::monitorField("TEST2.timestamp.nanoseconds",cout);
+    ioc4s::createRecord("TEST:PERF","UINT");
+    ioc4s::addStagingField("TEST:PERF.in","double");
+    ioc4s::addStagingField("TEST:PERF.out","double");
+    ioc4s::addStagingField("TEST:PERF.perf","double");
+    ioc4s::bindRecord("TEST:PERF","PERF");
+
+    ioc4s::createRecord("TEST:DOUBLE","DOUBLE");
+    ioc4s::initRecord("TEST:DOUBLE");
+
+    ioc4s::addLink("TEST:SCAN.value","TEST:PERF.in","PUT","");
+    ioc4s::addLink("TEST:PERF.out","TEST:DOUBLE.value","PUT","");
 
 
 
-//    ChannelProviderLocalPtr local = getChannelProviderLocal();
 
-
-//    Channel::shared_pointer c = local->createChannel("S1",ChannelRequester::shared_pointer(new ChannelRequesterImpl(false)),0);
-
-//    c->printInfo();
-
-
-    ioc->startPVAccess();
-
+    ioc4s::startPVA();
+    epicsThreadSleep(1);
     while(1){
         epicsThreadSleep(1);
     }
 
 
 
-//    PVRecord record = ioc
+    //    PVRecord record = ioc
 
     return 0;
 }

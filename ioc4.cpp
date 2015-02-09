@@ -97,35 +97,44 @@ void iocRecord::addFieldHandler(PVRecordFieldPtr field, function<void (const PVR
 }
 
 
-iocRecordPtr ioc4::initRecord(string type, string name)
+iocRecordPtr ioc4::initRecord(string name)
 {
+    //Check if record is already initialized
+    iocRecordPtr r = dynamic_pointer_cast<iocRecord>(PVDatabase::getMaster()->findRecord(name));
+    if(r) return r;
 
-    if(!stagingDb.count(name)) throw runtime_error("Record "+name+" does not exist in stageing database");
 
+    //Check if record exists in staging database
+    if(!stagingDb.count(name)) throw runtime_error("Record "+name+" does not exist in staging database");
+
+    //Init record and put it into pvDatabase
     PVStructurePtr recordData = stagingDb[name];
     stagingDb.erase(name);
 
+    sig_recordAfterStaging.emit(recordData);
 
-    if(type == ""){
-        iocRecordPtr record( new iocRecord(name,recordData) ) ;
-        PVDatabase::getMaster()->addRecord(record);
-        record->init();
-        return record;
-    }
-
-
-    if(!recordFactories.count(type)) throw runtime_error("Record type: "+type+" does not exist!\n");
-
-    iocRecordPtr record = recordFactories[type](name,recordData);
-    record->init();
+    iocRecordPtr record( new iocRecord(name,recordData) ) ;
     PVDatabase::getMaster()->addRecord(record);
+    record->init();
+    sig_recordInDatabase.emit(record);
     return record;
-
 }
 
-PVStructurePtr ioc4::createRecord(string type, string name){
-    if(formFactories.count(type)){
-        StructureConstPtr form = formFactories[type]();
+iocRecordPtr ioc4::bindRecord(string name, string component)
+{
+    if(!componentFactories.count(component)){
+        throw runtime_error("Component "+component+" does not exist!");
+    }
+
+    iocRecordPtr record = initRecord(name);
+    componentFactories[component](record);
+
+    return record;
+}
+
+PVStructurePtr ioc4::createRecord(string name, string type){
+    if(recordFactories.count(type)){
+        StructureConstPtr form = recordFactories[type]();
 
         PVStructurePtr data = getPVDataCreate()->createPVStructure(form);
 
@@ -209,7 +218,6 @@ void ioc4::setStagingField(string name, string value){
         //Copy existing data to new record
         for(PVFieldPtr a : record->getPVFields()){
             getConvert()->copy(a,newRecord->getSubField(a->getFieldName()));
-
         }
 
         stagingDb[recordName]=newRecord;
@@ -219,14 +227,69 @@ void ioc4::setStagingField(string name, string value){
     }
 
     //Copy value
+
+    //If field is string copy literal
+    PVStringPtr strField = dynamic_pointer_cast<PVString>(field);
+    if(strField){
+        strField->put(value);
+        return;
+    }
+
+    //else use from string
     StringArray arr;
     std::stringstream ss(value);
     std::string item;
-    while (std::getline(ss, item, ' ')) {
+    while (std::getline(ss, item, ',')) {
         arr.push_back(item);
     }
 
     fromString(field,arr,0);
+}
+
+void ioc4::addStagingField(string name, string type)
+{
+    size_t index = name.find(".",0);
+    string recordName = name.substr(0,index);
+    string fieldName = name.substr(index+1);
+
+    if(!stagingDb.count(recordName)) throw runtime_error(("Staging record "+recordName+" does not exist!"));
+
+    PVStructurePtr record = stagingDb[recordName];
+
+    //Check if field exists
+    PVFieldPtr field = record->getSubField(fieldName);
+
+    //TODO add creation of optional fields
+    if(!field){
+
+        //Create new form with addtional field
+        ScalarConstPtr scalar;
+        if(type=="string")
+             scalar = getFieldCreate()->createScalar(pvString);
+        else if(type=="int")
+            scalar = getFieldCreate()->createScalar(pvInt);
+        else if(type=="double")
+            scalar = getFieldCreate()->createScalar(pvDouble);
+        else if(type=="uint")
+            scalar = getFieldCreate()->createScalar(pvUInt);
+        else
+            throw runtime_error("Unknown field type "+type);
+
+        StructureConstPtr newForm = getFieldCreate()->appendField(record->getStructure(),fieldName,scalar);
+        //Create new data from the form
+        PVStructurePtr newRecord = getPVDataCreate()->createPVStructure(newForm);
+        //Copy existing data to new record
+        for(PVFieldPtr a : record->getPVFields()){
+            getConvert()->copy(a,newRecord->getSubField(a->getFieldName()));
+
+        }
+
+        stagingDb[recordName]=newRecord;
+        record=newRecord;
+
+        field = newRecord->getSubField(fieldName);
+    }
+
 }
 
 void ioc4::addLink(string from, string to, string specifications)
@@ -261,6 +324,7 @@ ioc4 *ioc4::getIoc(){
     return &instance;
 }
 
+#include <lttng/tracef.h>
 
 iocPutLink::iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),dest(dest){
     assert(src.get());
@@ -271,9 +335,10 @@ iocPutLink::iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),des
 
     PVFieldPtr srcData = src->getPVField();
     PVFieldPtr destData = dest->getPVField();
+    convert = getConvert();
 
     //Check if we can copy
-    if(!getConvert()->isCopyCompatible(srcData->getField(),destData->getField()))
+    if(!convert->isCopyCompatible(srcData->getField(),destData->getField()))
         throw runtime_error(("Can not create PUT link since field"+
                              src->getFullName()+
                              " and "+dest->getFullName()+
@@ -281,11 +346,24 @@ iocPutLink::iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),des
 
 
     srcRecord->addFieldHandler(src,[this](PVRecordFieldPtr const arg){
-        getConvert()->copy(this->src->getPVField(),this->dest->getPVField());
+        tracef("PUT: %s -> %s",this->src->getFullName().c_str(),this->dest->getFullName().c_str());
+
+        this->dest->getFullName();
+        this->dest->getPVRecord()->lock();
+        this->convert->copy(this->src->getPVField(),this->dest->getPVField());
+//        this->dest->getPVField()->postPut();
+        this->dest->getPVRecord()->unlock();
     });
 }
 
-
+/**
+ * @brief iocRecord::findPVRecordFieldByName
+ *
+ * DEPRECATED, use findPVField and findPVRecordField
+ *
+ * @param field
+ * @return
+ */
 PVRecordFieldPtr iocRecord::findPVRecordFieldByName(string field){
 
     PVFieldPtr data = this->data;
@@ -308,3 +386,25 @@ PVRecordFieldPtr iocRecord::findPVRecordFieldByName(string field){
     PVRecordFieldPtr fieldPtr = findPVRecordField(data);
     return fieldPtr;
 }
+
+
+PVFieldPtr iocRecord::findPVField(string field){
+    PVFieldPtr data = getPVStructure();
+
+    //Iterate over fields
+    std::stringstream ss(field);
+    std::string subFieldName;
+    while (std::getline(ss, subFieldName, '.')) {
+        PVStructurePtr dataStruct = dynamic_pointer_cast<PVStructure>(data);
+        if(!dataStruct) throw runtime_error(("Field "+field+" does not exist in record " + getRecordName()));
+
+        data = dataStruct->getSubField(subFieldName);
+        if(!data) throw runtime_error(("Field "+field+" does not exist in record " + getRecordName()));
+    }
+
+    if(!data) throw runtime_error(("Field "+field+" does not exist in record " + getRecordName()));
+
+    return data;
+}
+
+

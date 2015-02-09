@@ -1,0 +1,150 @@
+db = {
+	{ 
+	type = "STD::SCAN",
+	bind = "STD::SCAN",
+	name = "TEST:SCAN1",
+	fields = {
+		rate=0.2,
+		value=0,
+		gtp='value',
+		}
+	},
+	
+	{ 
+	type = "DOUBLE",
+	name = "TEST:AI1",
+	fields = {
+		value = 42.314,
+		--gtp = 'value',
+		}
+	},
+	
+	{ 
+	
+	name = "TEST:STRING1",
+	type = "STRING",
+	fields = {
+		value = "Hello World"
+		}
+	},
+
+	-- An example lua record
+	{ 	
+	name = "T:LUA",
+	-- Any type of record can be generated, for simplicity we will use a standard double record
+	type = "DOUBLE",
+	-- Lua record has to be bind to STD::LUA component
+	bind = "STD::LUA",
+	fields = {
+		--Set the value to some default
+		value = "3.14",
+		--This will create a field with type double (__<type>)
+		-- Note that if the field with this name already exists its value will NOT be changed
+		a__double = 42.33,
+
+		-- Give the record some logic
+		code = [[
+				function value_()
+					--print("New value: "..value)					
+				end;
+
+				function a_()
+					--print("Eval")
+					--a=a*2
+					value=a/10
+				end
+
+				]]
+		}
+	},
+
+		-- An example lua calc
+	{ 	
+	name = "TDIFF",
+	-- Any type of record can be generated, for simplicity we will use a standard double record
+	type = "DOUBLE",
+	-- Lua record has to be bind to STD::LUA component
+	bind = "STD::LUA",
+	fields = {
+		--Set the value to some default
+		value = "3.14",
+		--This will create a field with type double (__<type>)
+		-- Note that if the field with this name already exists its value will NOT be changed
+		a__double = 0,
+		b__double = 0,
+
+		-- Give the record some logic
+		code = [[
+				function b_()
+					--print(a,b,value)
+					value=(b-a)/1e3 --in us
+				end
+				]]
+		}
+	},
+
+	-- Lua record example that loads a whole lua file on startup
+	-- Record is bound to toString implementation in lua
+	-- 	current field of type double is defined
+	-- 	voltage field of type double is defined
+	-- Lua to string implementation requires this 2 fields:
+	--	fmt field specifies how to format the output field
+	-- 	args specifies which field to output
+	-- now whenever args field is updatad a new string generated according to fmt is 
+	-- and put into value field
+
+	{ 	
+	name = "T:PSU",
+	type = "STRING",
+	bind = "STD::LUA",
+	fields = {
+		-- this is a lua to string record
+		luarecord="toString.lua",
+		--Set the value to some default
+		value = "output will be put here",
+		--This will create a field with type double (__<type>)
+		-- Note that if the field with this name already exists its value will NOT be changed
+		current__double = 42.33,
+		voltage__double = 12,
+		fmt__string = "SETPSU: %f,%f",
+		args__string = "voltage,current",
+
+		gtp = "value,current,voltage",	
+		}
+	},	
+
+}
+
+-- Create a few PUT links
+links ={
+	{
+		type="PUT",
+		args="",
+		from="TEST:SCAN1.value",
+		to="TEST:AI1.value"
+	},
+	{
+		type="PUT",
+		args="",
+		from="TEST:SCAN1.value",
+		to="T:LUA.a"
+	},
+	{
+		type="PUT",
+		args="",
+		from="TEST:AI1.value",
+		to="T:PSU.voltage"
+	},
+	-- {
+	-- 	type="PUT",
+	-- 	args="",
+	-- 	from="TEST:SCAN1.value_timeStamp.nanoseconds",
+	-- 	to="TDIFF.a"
+	-- },
+	-- {
+	-- 	type="PUT",
+	-- 	args="",
+	-- 	from="TEST:AI1.value_timeStamp.nanoseconds",
+	-- 	to="TDIFF.b"
+	-- }
+}
