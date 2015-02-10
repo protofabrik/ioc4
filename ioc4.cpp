@@ -333,8 +333,8 @@ iocPutLink::iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),des
     //Get source record
     iocRecordPtr srcRecord = dynamic_pointer_cast<iocRecord>(src->getPVRecord());
 
-    PVFieldPtr srcData = src->getPVField();
-    PVFieldPtr destData = dest->getPVField();
+    srcData = src->getPVField();
+    destData = dest->getPVField();
     convert = getConvert();
 
     //Check if we can copy
@@ -344,16 +344,7 @@ iocPutLink::iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),des
                              " and "+dest->getFullName()+
                              " are not copy compatible"));
 
-
-    srcRecord->addFieldHandler(src,[this](PVRecordFieldPtr const arg){
-        tracef("PUT: %s -> %s",this->src->getFullName().c_str(),this->dest->getFullName().c_str());
-
-        this->dest->getFullName();
-        this->dest->getPVRecord()->lock();
-        this->convert->copy(this->src->getPVField(),this->dest->getPVField());
-//        this->dest->getPVField()->postPut();
-        this->dest->getPVRecord()->unlock();
-    });
+    src->addListener(iocPutLinkPtr(this));
 }
 
 /**

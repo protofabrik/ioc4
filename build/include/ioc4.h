@@ -43,26 +43,7 @@ public:
     PVFieldPtr srcData, destData;
     ConvertPtr convert;
 
-    iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),dest(dest){
-        assert(src.get());
-        assert(dest.get());
-
-        //Get source record
-        iocRecordPtr srcRecord = dynamic_pointer_cast<iocRecord>(src->getPVRecord());
-
-        srcData = src->getPVField();
-        destData = dest->getPVField();
-        convert = getConvert();
-
-        //Check if we can copy
-        if(!convert->isCopyCompatible(srcData->getField(),destData->getField()))
-            throw runtime_error(("Can not create PUT link since field"+
-                                 src->getFullName()+
-                                 " and "+dest->getFullName()+
-                                 " are not copy compatible"));
-
-        src->addListener(iocPutLinkPtr(this));
-    }
+    iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest);
 
     void dataPut(PVRecordFieldPtr const & pvRecordField){
         this->dest->getPVRecord()->lock();
