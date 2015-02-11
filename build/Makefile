@@ -151,6 +151,19 @@ tests_copy/fast:
 .PHONY : tests_copy/fast
 
 #=============================================================================
+# Target rules for targets named tests_perf_lua
+
+# Build rule for target.
+tests_perf_lua: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 tests_perf_lua
+.PHONY : tests_perf_lua
+
+# fast build rule for target.
+tests_perf_lua/fast:
+	$(MAKE) -f CMakeFiles/tests_perf_lua.dir/build.make CMakeFiles/tests_perf_lua.dir/build
+.PHONY : tests_perf_lua/fast
+
+#=============================================================================
 # Target rules for targets named tests_perf_syn
 
 # Build rule for target.
@@ -334,6 +347,30 @@ tests.cpp.s:
 	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/tests.cpp.s
 .PHONY : tests.cpp.s
 
+tests/test_perf_lua.o: tests/test_perf_lua.cpp.o
+.PHONY : tests/test_perf_lua.o
+
+# target to build an object file
+tests/test_perf_lua.cpp.o:
+	$(MAKE) -f CMakeFiles/tests_perf_lua.dir/build.make CMakeFiles/tests_perf_lua.dir/tests/test_perf_lua.cpp.o
+.PHONY : tests/test_perf_lua.cpp.o
+
+tests/test_perf_lua.i: tests/test_perf_lua.cpp.i
+.PHONY : tests/test_perf_lua.i
+
+# target to preprocess a source file
+tests/test_perf_lua.cpp.i:
+	$(MAKE) -f CMakeFiles/tests_perf_lua.dir/build.make CMakeFiles/tests_perf_lua.dir/tests/test_perf_lua.cpp.i
+.PHONY : tests/test_perf_lua.cpp.i
+
+tests/test_perf_lua.s: tests/test_perf_lua.cpp.s
+.PHONY : tests/test_perf_lua.s
+
+# target to generate assembly for a file
+tests/test_perf_lua.cpp.s:
+	$(MAKE) -f CMakeFiles/tests_perf_lua.dir/build.make CMakeFiles/tests_perf_lua.dir/tests/test_perf_lua.cpp.s
+.PHONY : tests/test_perf_lua.cpp.s
+
 tests/tests_copy.o: tests/tests_copy.cpp.o
 .PHONY : tests/tests_copy.o
 
@@ -418,6 +455,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... tests"
 	@echo "... tests_copy"
+	@echo "... tests_perf_lua"
 	@echo "... tests_perf_syn"
 	@echo "... ioc4.o"
 	@echo "... ioc4.i"
@@ -440,6 +478,9 @@ help:
 	@echo "... tests.o"
 	@echo "... tests.i"
 	@echo "... tests.s"
+	@echo "... tests/test_perf_lua.o"
+	@echo "... tests/test_perf_lua.i"
+	@echo "... tests/test_perf_lua.s"
 	@echo "... tests/tests_copy.o"
 	@echo "... tests/tests_copy.i"
 	@echo "... tests/tests_copy.s"

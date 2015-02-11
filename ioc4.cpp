@@ -265,7 +265,7 @@ void ioc4::addStagingField(string name, string type)
         //Create new form with addtional field
         ScalarConstPtr scalar;
         if(type=="string")
-             scalar = getFieldCreate()->createScalar(pvString);
+            scalar = getFieldCreate()->createScalar(pvString);
         else if(type=="int")
             scalar = getFieldCreate()->createScalar(pvInt);
         else if(type=="double")
@@ -292,18 +292,22 @@ void ioc4::addStagingField(string name, string type)
 
 }
 
-void ioc4::addLink(string from, string to, string specifications)
+void ioc4::addLink(string from, string to, string type, string specifications)
 {
     PVRecordFieldPtr fromField = findField(from);
     PVRecordFieldPtr toField = findField(to);
 
-    iocPutLinkPtr link (new iocPutLink(fromField,toField) );
-    putLinks.push_back(link);
+    if(type=="PUT")
+        (new iocPutLink(fromField,toField) );
+    else if(type=="COPY")
+        (new iocCopyLink(fromField,toField) );
+
+    //    putLinks.push_back(link);
 }
 
 void ioc4::startPVAccess(){
     /** pvDatabase init **/
-    ChannelProviderLocalPtr channelProvider = getChannelProviderLocal();    
+    ChannelProviderLocalPtr channelProvider = getChannelProviderLocal();
 
     ServerContext::shared_pointer pvaServer =
             startPVAServer(PVACCESS_ALL_PROVIDERS,0,true,true);
@@ -326,26 +330,7 @@ ioc4 *ioc4::getIoc(){
 
 #include <lttng/tracef.h>
 
-iocPutLink::iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),dest(dest){
-    assert(src.get());
-    assert(dest.get());
 
-    //Get source record
-    iocRecordPtr srcRecord = dynamic_pointer_cast<iocRecord>(src->getPVRecord());
-
-    srcData = src->getPVField();
-    destData = dest->getPVField();
-    convert = getConvert();
-
-    //Check if we can copy
-    if(!convert->isCopyCompatible(srcData->getField(),destData->getField()))
-        throw runtime_error(("Can not create PUT link since field"+
-                             src->getFullName()+
-                             " and "+dest->getFullName()+
-                             " are not copy compatible"));
-
-    src->addListener(iocPutLinkPtr(this));
-}
 
 /**
  * @brief iocRecord::findPVRecordFieldByName
@@ -399,3 +384,50 @@ PVFieldPtr iocRecord::findPVField(string field){
 }
 
 
+
+
+iocPutLink::iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),dest(dest){
+    //Get source record
+    iocRecordPtr srcRecord = dynamic_pointer_cast<iocRecord>(src->getPVRecord());
+
+    srcData = src->getPVField();
+    destData = dest->getPVField();
+    convert = getConvert();
+
+    //        //Check if we can copy
+    //        if(!convert->isCopyCompatible(srcData->getField(),destData->getField()))
+    //            throw runtime_error(("Can not create PUT link since field"+
+    //                                 src->getFullName()+
+    //                                 " and "+dest->getFullName()+
+    //                                 " are not copy compatible"));
+
+    if(!copy.addCopy(srcData,destData))
+        throw runtime_error(("Can not create PUT link since field"+
+                             src->getFullName()+
+                             " and "+dest->getFullName()+
+                             " are not put compatible, consider using COPY link instead"));
+
+    src->addListener(iocPutLinkPtr(this));
+}
+
+
+iocCopyLink::iocCopyLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),dest(dest)
+{
+
+    //Get source record
+    iocRecordPtr srcRecord = dynamic_pointer_cast<iocRecord>(src->getPVRecord());
+
+    srcData = src->getPVField();
+    destData = dest->getPVField();
+    convert = getConvert();
+
+    //Check if we can copy
+    if(!convert->isCopyCompatible(srcData->getField(),destData->getField()))
+        throw runtime_error(("Can not create COPY link since field"+
+                             src->getFullName()+
+                             " and "+dest->getFullName()+
+                             " are not copy compatible"));
+
+    iocCopyLinkPtr ptr(this);
+    src->addListener(ptr);
+}

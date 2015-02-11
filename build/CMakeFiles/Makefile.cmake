@@ -46,5 +46,6 @@ SET(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/ioclua.dir/DependInfo.cmake"
   "CMakeFiles/tests.dir/DependInfo.cmake"
   "CMakeFiles/tests_copy.dir/DependInfo.cmake"
+  "CMakeFiles/tests_perf_lua.dir/DependInfo.cmake"
   "CMakeFiles/tests_perf_syn.dir/DependInfo.cmake"
   )

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (ioc4)
 
-#set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Debug)
 
 ##Include a coitre for precompiled headers
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/.")
@@ -22,7 +22,7 @@ link_directories(/opt/epics/e4/pvDatabaseCPP/lib/linux-x86_64)
 link_directories(/opt/epics/e4/pvAccessCPP/lib/linux-x86_64)
 
 #list( APPEND CMAKE_CXX_FLAGS "-std=c++11 -Wno-deprecated -g -finstrument-functions")
-list( APPEND CMAKE_CXX_FLAGS "-std=c++11 -Wno-deprecated -O3")
+list( APPEND CMAKE_CXX_FLAGS "-std=c++11 -g -Wno-deprecated -O3")
 
 
 ######## MAIN IOC4 LIBRARY
@@ -71,5 +71,13 @@ include_directories(build/include)
 add_executable(tests_perf_syn tests/tests_perf_syn.cpp)
 target_link_libraries(tests_perf_syn ioc4)
 
+include_directories(build/include)
+add_executable(tests_perf_lua tests/test_perf_lua.cpp)
+target_link_libraries(tests_perf_lua ioc4)
+
+
+#include_directories(build/include)
+#add_executable(test_PVLua tests/test_PVLua.cpp)
+#target_link_libraries(test_PVLua ioc4)
 
 

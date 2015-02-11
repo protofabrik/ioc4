@@ -193,13 +193,48 @@ clean: CMakeFiles/tests_copy.dir/clean
 .PHONY : clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/tests_perf_lua.dir
+
+# All Build rule for target.
+CMakeFiles/tests_perf_lua.dir/all: CMakeFiles/ioc4.dir/all
+	$(MAKE) -f CMakeFiles/tests_perf_lua.dir/build.make CMakeFiles/tests_perf_lua.dir/depend
+	$(MAKE) -f CMakeFiles/tests_perf_lua.dir/build.make CMakeFiles/tests_perf_lua.dir/build
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/tom/Git/projects/ioc4/build/CMakeFiles  11
+	@echo "Built target tests_perf_lua"
+.PHONY : CMakeFiles/tests_perf_lua.dir/all
+
+# Include target in all.
+all: CMakeFiles/tests_perf_lua.dir/all
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/tests_perf_lua.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/tom/Git/projects/ioc4/build/CMakeFiles 8
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/tests_perf_lua.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/tom/Git/projects/ioc4/build/CMakeFiles 0
+.PHONY : CMakeFiles/tests_perf_lua.dir/rule
+
+# Convenience name for target.
+tests_perf_lua: CMakeFiles/tests_perf_lua.dir/rule
+.PHONY : tests_perf_lua
+
+# clean rule for target.
+CMakeFiles/tests_perf_lua.dir/clean:
+	$(MAKE) -f CMakeFiles/tests_perf_lua.dir/build.make CMakeFiles/tests_perf_lua.dir/clean
+.PHONY : CMakeFiles/tests_perf_lua.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/tests_perf_lua.dir/clean
+.PHONY : clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/tests_perf_syn.dir
 
 # All Build rule for target.
 CMakeFiles/tests_perf_syn.dir/all: CMakeFiles/ioc4.dir/all
 	$(MAKE) -f CMakeFiles/tests_perf_syn.dir/build.make CMakeFiles/tests_perf_syn.dir/depend
 	$(MAKE) -f CMakeFiles/tests_perf_syn.dir/build.make CMakeFiles/tests_perf_syn.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/tom/Git/projects/ioc4/build/CMakeFiles  11
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/tom/Git/projects/ioc4/build/CMakeFiles  12
 	@echo "Built target tests_perf_syn"
 .PHONY : CMakeFiles/tests_perf_syn.dir/all
 

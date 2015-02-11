@@ -11,8 +11,8 @@
 
 //External includes
 extern "C"{
-    #include <lua.h>
-    #include <unistd.h>
+#include <lua.h>
+#include <unistd.h>
 }
 
 #include <luabind/luabind.hpp>
@@ -38,8 +38,8 @@ extern "C" int init_lib(lua_State* L)
     open(L);
 
     module(L)
-    [
-        namespace_("ioc")[
+            [
+            namespace_("ioc")[
             def("init",&ioc4s::init),
             def("createRecord",&ioc4s::createRecord),
             def("bindRecord",&ioc4s::bindRecord),
@@ -49,11 +49,11 @@ extern "C" int init_lib(lua_State* L)
             def("startPVAccess",&ioc4s::startPVA),
             def("addLink",&ioc4s::addLink),
             def("dbl",&ioc4s::dbl,return_stl_iterator)
-        ]
+            ]
 
-    ];
+            ];
 
-//    init1(L);
+    //    init1(L);
 
     return 0;
 }
@@ -61,38 +61,62 @@ extern "C" int init_lib(lua_State* L)
 
 void PVDataLua::PVStructureToLua(lua_State *L, PVStructurePtr pv_struct){
 
-    PVFieldPtrArray fields = pv_struct->getPVFields();
+    const PVFieldPtrArray fields = pv_struct->getPVFields();
 
     lua_newtable(L);
-
 
     for(int i=0;i<fields.size();i++){
         PVFieldPtr field=fields[i];
         //Handle scalar conversion
         if(field->getField()->getType()==scalar){
-            PVDoublePtr dval = dynamic_pointer_cast<PVDouble>(field);
-            if(dval){
-                lua_pushnumber(L,dval->get());
-                lua_setfield(L,-2,field->getFieldName().c_str());
-                continue;
-            }
+            //PVDoublePtr dval = dynamic_pointer_cast<PVDouble>(field);
+            ScalarType type = static_cast<const Scalar*>(field->getField().get())->getScalarType();
 
-            PVStringPtr sval = dynamic_pointer_cast<PVString>(field);
-            if(sval){
-                lua_pushstring(L,sval->get().c_str());
+            switch (type) {
+            case pvDouble:
+                lua_pushnumber(L,static_cast<PVDouble*>(field.get())->get());
                 lua_setfield(L,-2,field->getFieldName().c_str());
-                continue;
-            }
-
-            PVIntPtr ival = dynamic_pointer_cast<PVInt>(field);
-            if(ival){
-                lua_pushnumber(L,ival->get());
+                break;
+            case pvByte:
+                lua_pushnumber(L,static_cast<PVByte*>(field.get())->get());
                 lua_setfield(L,-2,field->getFieldName().c_str());
-                continue;
+                break;
+            case pvUByte:
+                lua_pushnumber(L,static_cast<PVUByte*>(field.get())->get());
+                lua_setfield(L,-2,field->getFieldName().c_str());
+                break;
+            case pvShort:
+                lua_pushnumber(L,static_cast<PVShort*>(field.get())->get());
+                lua_setfield(L,-2,field->getFieldName().c_str());
+                break;
+            case pvUShort:
+                lua_pushnumber(L,static_cast<PVUShort*>(field.get())->get());
+                lua_setfield(L,-2,field->getFieldName().c_str());
+                break;
+            case pvInt:
+                lua_pushnumber(L,static_cast<PVInt*>(field.get())->get());
+                lua_setfield(L,-2,field->getFieldName().c_str());
+                break;
+            case pvUInt:
+                lua_pushnumber(L,static_cast<PVUInt*>(field.get())->get());
+                lua_setfield(L,-2,field->getFieldName().c_str());
+                break;
+            case pvLong:
+                lua_pushnumber(L,static_cast<PVLong*>(field.get())->get());
+                lua_setfield(L,-2,field->getFieldName().c_str());
+                break;
+            case pvULong:
+                lua_pushnumber(L,static_cast<PVULong*>(field.get())->get());
+                lua_setfield(L,-2,field->getFieldName().c_str());
+                break;
+            case pvString:
+                lua_pushstring(L,static_cast<PVString*>(field.get())->get().c_str());
+                lua_setfield(L,-2,field->getFieldName().c_str());
+                break;
+            default:
+                throw runtime_error("Conversion not yet implemented!");
+                break;
             }
-
-            lua_pushstring(L,"Conversion not yet implemented!");
-            lua_setfield(L,-2,field->getFieldName().c_str());
 
         }
 
@@ -120,7 +144,72 @@ PVStructurePtr PVDataLua::appendPVField(PVStructurePtr orig, string name, PVFiel
     return newData;
 }
 
-PVStructurePtr PVDataLua::luaToPVStructure(lua_State *L){
+void PVDataLua::luaToPVStructure(lua_State *L, PVStructure* dstStructure){
+    //Iterate over table fields
+    /* table is in the stack at index '-1' */
+    lua_pushnil(L);  /* first key, table at index -2 */
+    while (lua_next(L, -2) != 0) {
+
+        /* uses 'key' (at index -2) and 'value' (at index -1) */
+        //        printf("%s - %s\n",lua_tostring(L,-2),lua_tostring(L,-1));
+
+        //Check if field exists in structure
+        PVField* f = dstStructure->getSubField(lua_tostring(L,-2)).get();
+        if(f){
+            //Recursion
+            if(lua_istable(L,-1)){
+                //Check if field is structure
+                if(f->getField()->getType() == structure)
+                    PVDataLua::luaToPVStructure(L,static_cast<PVStructure*>(f));
+            }
+
+            //Check if field is scalar
+            else if(f->getField()->getType() == scalar){
+                PVScalar* s = static_cast<PVScalar*>(f);
+                ScalarType stype = s->getScalar()->getScalarType();
+
+                if(lua_isboolean(L,-1)){
+                    if(stype==pvBoolean){
+                        static_cast<PVBoolean*>(s)->put(lua_toboolean(L,-1));
+                    }
+                }
+                else if(lua_isnumber(L,-1)){
+                    if(stype==pvByte)
+                        static_cast<PVByte*>(s)->put(lua_tonumber(L,-1));
+                    if(stype==pvShort)
+                        static_cast<PVShort*>(s)->put(lua_tonumber(L,-1));
+                    if(stype==pvInt)
+                        static_cast<PVInt*>(s)->put(lua_tonumber(L,-1));
+                    if(stype==pvLong)
+                        static_cast<PVLong*>(s)->put(lua_tonumber(L,-1));
+                    if(stype==pvUByte)
+                        static_cast<PVUByte*>(s)->put(lua_tonumber(L,-1));
+                    if(stype==pvUShort)
+                        static_cast<PVUShort*>(s)->put(lua_tonumber(L,-1));
+                    if(stype==pvUInt)
+                        static_cast<PVUInt*>(s)->put(lua_tonumber(L,-1));
+                    if(stype==pvULong)
+                        static_cast<PVULong*>(s)->put(lua_tonumber(L,-1));
+                    if(stype==pvDouble)
+                        static_cast<PVDouble*>(s)->put(lua_tonumber(L,-1));
+                }
+                else if(lua_isstring(L,-1)){
+                    if(stype==pvString)
+                        static_cast<PVString*>(s)->put(lua_tostring(L,-1));
+                }
+            }
+        }
+
+
+
+
+        /* removes 'value'; keeps 'key' for next iteration */
+        lua_pop(L, 1);
+    }
+
+}
+
+PVStructurePtr PVDataLua::luaToNewPVStructure(lua_State *L){
     if(!lua_istable(L,-1)){
         return PVStructurePtr();
     }
@@ -137,7 +226,7 @@ PVStructurePtr PVDataLua::luaToPVStructure(lua_State *L){
 
         //Recursion
         if(lua_istable(L,-1)){
-            data=appendPVField(data,lua_tostring(L,-2),luaToPVStructure(L));
+            data=appendPVField(data,lua_tostring(L,-2),luaToNewPVStructure(L));
         }
         else if(lua_isboolean(L,-1)){
             //serialization to PVBoolean

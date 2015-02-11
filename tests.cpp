@@ -85,7 +85,7 @@ int main(int argc, char** argv){
     ioc4s::createRecord("TEST:DOUBLE","UINT");
     ioc4s::initRecord("TEST:DOUBLE");
 
-    ioc4s::addLink("TEST:SCAN.value","TEST:PERF.in","PUT","");
+    ioc4s::addLink("TEST:SCAN.value","TEST:PERF.in","COPY","");
     ioc4s::addLink("TEST:PERF.out","TEST:DOUBLE.value","PUT","");
 
 

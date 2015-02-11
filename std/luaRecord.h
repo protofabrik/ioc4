@@ -38,9 +38,11 @@ private:
 
     iocRecordPtr m_record;
     PVStringPtr m_code;
+    bool m_running;
     lua_State* L;
 
     PVRecordFieldPtrArrayPtr m_fields;
+
 
     LuaRecord(iocRecordPtr record);
 

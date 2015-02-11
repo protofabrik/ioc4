@@ -10,6 +10,7 @@ CMakeFiles/ioclua.dir/luashell/iocLua.cpp.o: ../simplesignal.h
 CMakeFiles/ioclua.dir/luashell/iocLua.cpp.o: ../std/ioc4gtp.h
 CMakeFiles/ioclua.dir/luashell/iocLua.cpp.o: ../std/luaRecord.h
 CMakeFiles/ioclua.dir/luashell/iocLua.cpp.o: ../std/standardRecords.h
+CMakeFiles/ioclua.dir/luashell/iocLua.cpp.o: ../utils/pvFastCopy.h
 CMakeFiles/ioclua.dir/luashell/iocLua.cpp.o: /opt/epics/base/include/compilerDependencies.h
 CMakeFiles/ioclua.dir/luashell/iocLua.cpp.o: /opt/epics/base/include/ellLib.h
 CMakeFiles/ioclua.dir/luashell/iocLua.cpp.o: /opt/epics/base/include/envDefs.h

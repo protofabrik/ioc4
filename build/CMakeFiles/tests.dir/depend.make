@@ -9,6 +9,7 @@ CMakeFiles/tests.dir/tests.cpp.o: ../std/ioc4gtp.h
 CMakeFiles/tests.dir/tests.cpp.o: ../std/luaRecord.h
 CMakeFiles/tests.dir/tests.cpp.o: ../std/standardRecords.h
 CMakeFiles/tests.dir/tests.cpp.o: ../tests.cpp
+CMakeFiles/tests.dir/tests.cpp.o: ../utils/pvFastCopy.h
 CMakeFiles/tests.dir/tests.cpp.o: /opt/epics/base/include/compilerDependencies.h
 CMakeFiles/tests.dir/tests.cpp.o: /opt/epics/base/include/ellLib.h
 CMakeFiles/tests.dir/tests.cpp.o: /opt/epics/base/include/envDefs.h

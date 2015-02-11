@@ -18,6 +18,15 @@ db = {
 		--gtp = 'value',
 		}
 	},
+	{
+	type = "UINT",
+	name = "TEST:UINT",
+	fields = {
+		value = 42,
+		--gtp = 'value',
+		}
+	},
+	
 	
 	{ 
 	
@@ -45,13 +54,14 @@ db = {
 		-- Give the record some logic
 		code = [[
 				function value_()
-					--print("New value: "..value)					
+					print("New value: "..value)					
 				end;
 
 				function a_()
-					--print("Eval")
+					print("Eval")
+					print(record.a)
 					--a=a*2
-					value=a/10
+					record.a=record.a/10
 				end
 
 				]]
@@ -59,29 +69,29 @@ db = {
 	},
 
 		-- An example lua calc
-	{ 	
-	name = "TDIFF",
-	-- Any type of record can be generated, for simplicity we will use a standard double record
-	type = "DOUBLE",
-	-- Lua record has to be bind to STD::LUA component
-	bind = "STD::LUA",
-	fields = {
-		--Set the value to some default
-		value = "3.14",
-		--This will create a field with type double (__<type>)
-		-- Note that if the field with this name already exists its value will NOT be changed
-		a__double = 0,
-		b__double = 0,
+	-- { 	
+	-- name = "TDIFF",
+	-- -- Any type of record can be generated, for simplicity we will use a standard double record
+	-- type = "DOUBLE",
+	-- -- Lua record has to be bind to STD::LUA component
+	-- bind = "STD::LUA",
+	-- fields = {
+	-- 	--Set the value to some default
+	-- 	value = "3.14",
+	-- 	--This will create a field with type double (__<type>)
+	-- 	-- Note that if the field with this name already exists its value will NOT be changed
+	-- 	a__double = 0,
+	-- 	b__double = 0,
 
-		-- Give the record some logic
-		code = [[
-				function b_()
-					--print(a,b,value)
-					value=(b-a)/1e3 --in us
-				end
-				]]
-		}
-	},
+	-- 	-- Give the record some logic
+	-- 	code = [[
+	-- 			function b_()
+	-- 				--print(a,b,value)
+	-- 				value=(b-a)/1e3 --in us
+	-- 			end
+	-- 			]]
+	-- 	}
+	-- },
 
 	-- Lua record example that loads a whole lua file on startup
 	-- Record is bound to toString implementation in lua
@@ -92,7 +102,6 @@ db = {
 	-- 	args specifies which field to output
 	-- now whenever args field is updatad a new string generated according to fmt is 
 	-- and put into value field
-
 	{ 	
 	name = "T:PSU",
 	type = "STRING",
@@ -107,8 +116,9 @@ db = {
 		current__double = 42.33,
 		voltage__double = 12,
 		fmt__string = "SETPSU: %f,%f",
-		args__string = "voltage,current",
+		args__string = "record.voltage,record.current",
 
+		-- general timing provider, timestamp following fields
 		gtp = "value,current,voltage",	
 		}
 	},	
@@ -118,7 +128,7 @@ db = {
 -- Create a few PUT links
 links ={
 	{
-		type="PUT",
+		type="COPY",
 		args="",
 		from="TEST:SCAN1.value",
 		to="TEST:AI1.value"
@@ -127,7 +137,7 @@ links ={
 		type="PUT",
 		args="",
 		from="TEST:SCAN1.value",
-		to="T:LUA.a"
+		to="TEST:UINT.value"
 	},
 	{
 		type="PUT",
@@ -136,15 +146,10 @@ links ={
 		to="T:PSU.voltage"
 	},
 	-- {
-	-- 	type="PUT",
+	-- 	type="COPY",
 	-- 	args="",
 	-- 	from="TEST:SCAN1.value_timeStamp.nanoseconds",
 	-- 	to="TDIFF.a"
 	-- },
-	-- {
-	-- 	type="PUT",
-	-- 	args="",
-	-- 	from="TEST:AI1.value_timeStamp.nanoseconds",
-	-- 	to="TDIFF.b"
-	-- }
+
 }

@@ -5,6 +5,8 @@
 
 #include "lua.hpp"
 #include "luaRecord.h"
+#include "../luashell/iocLua.h"
+
 
 
 
@@ -13,7 +15,13 @@ using namespace  std;
 
 string LuaRecord::m_lua_record_path;
 
-LuaRecord::LuaRecord(iocRecordPtr record):m_record(record){
+LuaRecord::LuaRecord(iocRecordPtr record):
+    m_record(record),
+    m_running(false)
+
+    {
+    //Oh noes, unguarded record lock. If exception is thrown here we will neve unlock this record.
+    //TODO: Scoped locks...
     m_record->lock();
 
     try{
@@ -85,7 +93,10 @@ void LuaRecord::code_updated(){
 
     }
 
-    copyFieldsToLua();
+    //copyFieldsToLua();
+    PVDataLua::PVStructureToLua(L,m_record->data);
+    lua_setglobal(L,"record");
+
 
     //Run init function if it exists
     lua_getglobal(L,"init");
@@ -99,20 +110,25 @@ void LuaRecord::code_updated(){
         lua_pop(L,1);
     }
 
-    copyFieldsFromLua();
+    //copyFieldsFromLua();
+    lua_getglobal(L,"record");
+    PVDataLua::luaToPVStructure(L,m_record->data);
+    lua_pop(L,1);
 
     m_record->unlock();
 }
 
-#include "../luashell/iocLua.h"
 void LuaRecord::run(const PVRecordFieldPtr updatedField){
+    //Prevent multiple calls to run due to changeing fields
+    if(m_running) return;
+
     m_record->lock();
+    cout << "LUA PROC!!" << updatedField->getFullFieldName() << endl;
+    m_running=true;
 
-    copyFieldsToLua();
-
-    //New way of copying data to Lua
-//    PVDataLua::PVStructureToLua(L,m_record->getPVRecordStructure()->getPVStructure());
-//    lua_setglobal(L,"record");
+    //    copyFieldsToLua();
+    PVDataLua::PVStructureToLua(L,m_record->data);
+    lua_setglobal(L,"record");
 
     //Run function if it exists
     lua_getglobal(L,(updatedField->getFullFieldName()+"_").c_str());
@@ -126,70 +142,13 @@ void LuaRecord::run(const PVRecordFieldPtr updatedField){
         lua_pop(L,1);
     }
 
-    copyFieldsFromLua();
+    //copyFieldsFromLua();
+    lua_getglobal(L,"record");
+    PVDataLua::luaToPVStructure(L,m_record->data);
+    lua_pop(L,1);
+    m_running=false;
+    cout << "LUA PROC END!!" << endl;
 
 //    lua_gc(L,LUA_GCCOLLECT,0);
     m_record->unlock();
-}
-
-void LuaRecord::copyFieldsToLua(){
-    //Copy fields into global Lua scope
-    PVRecordFieldPtr field;
-    for(int i=0;i<m_fields->size();i++){
-        field = m_fields->at(i);
-
-        PVFieldPtr d = field->getPVField();
-
-
-        //Check if it is string and copy it
-        PVStringPtr strVal = dynamic_pointer_cast<PVString>(d);
-        if(strVal){
-            //luabind::globals(L)[d->getFieldName()] = strVal->get();
-            lua_pushstring(L,strVal->get().c_str());
-            lua_setglobal(L,d->getFieldName().c_str());
-        }
-
-        //Check if it is double and copy it
-        PVDoublePtr dbVal = dynamic_pointer_cast<PVDouble>(d);
-        if(dbVal){
-            lua_pushnumber(L,dbVal->get());
-            lua_setglobal(L,d->getFieldName().c_str());
-        }
-
-
-    }
-}
-void LuaRecord::copyFieldsFromLua(){
-    //extract the values from lua scope
-    PVRecordFieldPtr field;
-    for(int i=0;i<m_fields->size();i++){
-        field = m_fields->at(i);
-
-        PVFieldPtr d = field->getPVField();
-
-        //Push lua representation of this field to stack
-        lua_getglobal(L,d->getFieldName().c_str());
-
-        //Check if it is string and copy it
-        PVStringPtr strVal = dynamic_pointer_cast<PVString>(d);
-        if(strVal && lua_isstring(L,-1)){
-            string val(lua_tostring(L,-1));
-
-            //Only update the field if it changed
-            if(val != strVal->get())
-                strVal->put(val);
-        }
-
-        //Check if it is double and copy it
-        PVDoublePtr dbVal = dynamic_pointer_cast<PVDouble>(d);
-        if(dbVal && lua_isnumber(L,-1)){
-            double val = lua_tonumber(L,-1);
-            if(val != dbVal->get())
-                dbVal->put(val);
-        }
-
-        //Pop the value from stack
-        lua_pop(L,1);
-
-    }
 }

@@ -29,6 +29,8 @@ pv/serverContext.h
 -
 pv/pvDatabase.h
 -
+utils/pvFastCopy.h
+/home/tom/Git/projects/ioc4/utils/pvFastCopy.h
 simplesignal.h
 /home/tom/Git/projects/ioc4/simplesignal.h
 pvutils.h
@@ -919,6 +921,8 @@ pv/serverContext.h
 -
 pv/pvDatabase.h
 -
+utils/pvFastCopy.h
+include/utils/pvFastCopy.h
 simplesignal.h
 include/simplesignal.h
 pvutils.h

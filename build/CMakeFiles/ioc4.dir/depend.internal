@@ -6,6 +6,7 @@ CMakeFiles/ioc4.dir/ioc4.cpp.o
  /home/tom/Git/projects/ioc4/ioc4.h
  /home/tom/Git/projects/ioc4/pvutils.h
  /home/tom/Git/projects/ioc4/simplesignal.h
+ /home/tom/Git/projects/ioc4/utils/pvFastCopy.h
  /opt/epics/base/include/compilerDependencies.h
  /opt/epics/base/include/ellLib.h
  /opt/epics/base/include/envDefs.h
@@ -85,6 +86,7 @@ CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o
  /home/tom/Git/projects/ioc4/std/ioc4gtp.h
  /home/tom/Git/projects/ioc4/std/luaRecord.h
  /home/tom/Git/projects/ioc4/std/standardRecords.h
+ /home/tom/Git/projects/ioc4/utils/pvFastCopy.h
  /opt/epics/base/include/compilerDependencies.h
  /opt/epics/base/include/ellLib.h
  /opt/epics/base/include/envDefs.h
@@ -158,6 +160,7 @@ CMakeFiles/ioc4.dir/pvutils.cpp.o
  /home/tom/Git/projects/ioc4/pvutils.cpp
  /home/tom/Git/projects/ioc4/pvutils.h
  /home/tom/Git/projects/ioc4/simplesignal.h
+ /home/tom/Git/projects/ioc4/utils/pvFastCopy.h
  /opt/epics/base/include/compilerDependencies.h
  /opt/epics/base/include/ellLib.h
  /opt/epics/base/include/envDefs.h
@@ -233,6 +236,7 @@ CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o
  /home/tom/Git/projects/ioc4/simplesignal.h
  /home/tom/Git/projects/ioc4/std/ioc4gtp.cpp
  /home/tom/Git/projects/ioc4/std/ioc4gtp.h
+ /home/tom/Git/projects/ioc4/utils/pvFastCopy.h
  /opt/epics/base/include/compilerDependencies.h
  /opt/epics/base/include/ellLib.h
  /opt/epics/base/include/envDefs.h
@@ -308,6 +312,7 @@ CMakeFiles/ioc4.dir/std/luaRecord.cpp.o
  /home/tom/Git/projects/ioc4/simplesignal.h
  /home/tom/Git/projects/ioc4/std/luaRecord.cpp
  /home/tom/Git/projects/ioc4/std/luaRecord.h
+ /home/tom/Git/projects/ioc4/utils/pvFastCopy.h
  /opt/epics/base/include/compilerDependencies.h
  /opt/epics/base/include/ellLib.h
  /opt/epics/base/include/envDefs.h

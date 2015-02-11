@@ -5,6 +5,7 @@ CMakeFiles/ioc4.dir/ioc4.cpp.o: ../ioc4.cpp
 CMakeFiles/ioc4.dir/ioc4.cpp.o: ../ioc4.h
 CMakeFiles/ioc4.dir/ioc4.cpp.o: ../pvutils.h
 CMakeFiles/ioc4.dir/ioc4.cpp.o: ../simplesignal.h
+CMakeFiles/ioc4.dir/ioc4.cpp.o: ../utils/pvFastCopy.h
 CMakeFiles/ioc4.dir/ioc4.cpp.o: /opt/epics/base/include/compilerDependencies.h
 CMakeFiles/ioc4.dir/ioc4.cpp.o: /opt/epics/base/include/ellLib.h
 CMakeFiles/ioc4.dir/ioc4.cpp.o: /opt/epics/base/include/envDefs.h
@@ -84,6 +85,7 @@ CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o: ../simplesignal.h
 CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o: ../std/ioc4gtp.h
 CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o: ../std/luaRecord.h
 CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o: ../std/standardRecords.h
+CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o: ../utils/pvFastCopy.h
 CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o: /opt/epics/base/include/compilerDependencies.h
 CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o: /opt/epics/base/include/ellLib.h
 CMakeFiles/ioc4.dir/luashell/iocLua.cpp.o: /opt/epics/base/include/envDefs.h
@@ -157,6 +159,7 @@ CMakeFiles/ioc4.dir/pvutils.cpp.o: ../ioc4.h
 CMakeFiles/ioc4.dir/pvutils.cpp.o: ../pvutils.cpp
 CMakeFiles/ioc4.dir/pvutils.cpp.o: ../pvutils.h
 CMakeFiles/ioc4.dir/pvutils.cpp.o: ../simplesignal.h
+CMakeFiles/ioc4.dir/pvutils.cpp.o: ../utils/pvFastCopy.h
 CMakeFiles/ioc4.dir/pvutils.cpp.o: /opt/epics/base/include/compilerDependencies.h
 CMakeFiles/ioc4.dir/pvutils.cpp.o: /opt/epics/base/include/ellLib.h
 CMakeFiles/ioc4.dir/pvutils.cpp.o: /opt/epics/base/include/envDefs.h
@@ -232,6 +235,7 @@ CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o: ../pvutils.h
 CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o: ../simplesignal.h
 CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o: ../std/ioc4gtp.cpp
 CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o: ../std/ioc4gtp.h
+CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o: ../utils/pvFastCopy.h
 CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o: /opt/epics/base/include/compilerDependencies.h
 CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o: /opt/epics/base/include/ellLib.h
 CMakeFiles/ioc4.dir/std/ioc4gtp.cpp.o: /opt/epics/base/include/envDefs.h
@@ -307,6 +311,7 @@ CMakeFiles/ioc4.dir/std/luaRecord.cpp.o: ../pvutils.h
 CMakeFiles/ioc4.dir/std/luaRecord.cpp.o: ../simplesignal.h
 CMakeFiles/ioc4.dir/std/luaRecord.cpp.o: ../std/luaRecord.cpp
 CMakeFiles/ioc4.dir/std/luaRecord.cpp.o: ../std/luaRecord.h
+CMakeFiles/ioc4.dir/std/luaRecord.cpp.o: ../utils/pvFastCopy.h
 CMakeFiles/ioc4.dir/std/luaRecord.cpp.o: /opt/epics/base/include/compilerDependencies.h
 CMakeFiles/ioc4.dir/std/luaRecord.cpp.o: /opt/epics/base/include/ellLib.h
 CMakeFiles/ioc4.dir/std/luaRecord.cpp.o: /opt/epics/base/include/envDefs.h

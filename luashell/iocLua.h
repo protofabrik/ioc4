@@ -29,7 +29,13 @@ public:
      */
     static PVStructurePtr appendPVField(PVStructurePtr orig,string name, PVFieldPtr field);
 
-    static PVStructurePtr luaToPVStructure(lua_State* L);
+    static PVStructurePtr luaToNewPVStructure(lua_State* L);
 
+    inline static void luaToPVStructure(lua_State *L, PVStructurePtr structure){
+        luaToPVStructure(L,structure.get());
+    }
+
+private:
+    static void luaToPVStructure(lua_State *L, PVStructure* structure);
 };
 

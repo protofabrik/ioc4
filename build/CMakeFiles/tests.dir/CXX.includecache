@@ -29,6 +29,8 @@ pv/serverContext.h
 -
 pv/pvDatabase.h
 -
+utils/pvFastCopy.h
+/home/tom/Git/projects/ioc4/utils/pvFastCopy.h
 simplesignal.h
 /home/tom/Git/projects/ioc4/simplesignal.h
 pvutils.h
@@ -106,6 +108,10 @@ std/standardRecords.h
 time.h
 -
 functional
+-
+
+/home/tom/Git/projects/ioc4/utils/pvFastCopy.h
+pv/pvData.h
 -
 
 /opt/epics/base/include/compilerDependencies.h

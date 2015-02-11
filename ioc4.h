@@ -15,6 +15,7 @@
 #include <pv/channelProviderLocal.h>
 #include <pv/serverContext.h>
 #include <pv/pvDatabase.h>
+#include "utils/pvFastCopy.h"
 
 #include "simplesignal.h"
 
@@ -42,31 +43,15 @@ public:
     PVRecordFieldPtr src, dest;
     PVFieldPtr srcData, destData;
     ConvertPtr convert;
+    PVFastCopy copy;
 
-    iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest):src(src),dest(dest){
-        assert(src.get());
-        assert(dest.get());
 
-        //Get source record
-        iocRecordPtr srcRecord = dynamic_pointer_cast<iocRecord>(src->getPVRecord());
-
-        srcData = src->getPVField();
-        destData = dest->getPVField();
-        convert = getConvert();
-
-        //Check if we can copy
-        if(!convert->isCopyCompatible(srcData->getField(),destData->getField()))
-            throw runtime_error(("Can not create PUT link since field"+
-                                 src->getFullName()+
-                                 " and "+dest->getFullName()+
-                                 " are not copy compatible"));
-
-        src->addListener(iocPutLinkPtr(this));
-    }
+    iocPutLink(PVRecordFieldPtr src, PVRecordFieldPtr dest);
 
     void dataPut(PVRecordFieldPtr const & pvRecordField){
         this->dest->getPVRecord()->lock();
-        this->convert->copy(this->srcData,this->destData);
+//        this->convert->copy(this->srcData,this->destData);
+        this->copy.doCopy();
         this->dest->getPVRecord()->unlock();
 
     }
@@ -77,7 +62,38 @@ public:
 
     }
 
+    virtual void beginGroupPut(PVRecordPtr const & pvRecord){}
 
+    virtual void endGroupPut(PVRecordPtr const & pvRecord){}
+
+    virtual void unlisten(PVRecordPtr const & pvRecord){}
+
+    virtual void detach(PVRecordPtr const & pvRecord){}
+};
+
+class iocCopyLink;
+typedef std::tr1::shared_ptr<iocCopyLink> iocCopyLinkPtr;
+class iocCopyLink:public PVListener{
+public:
+    PVRecordFieldPtr src, dest;
+    PVFieldPtr srcData, destData;
+    ConvertPtr convert;
+    PVFastCopy copy;
+
+
+    iocCopyLink(PVRecordFieldPtr src, PVRecordFieldPtr dest);
+
+    void dataPut(PVRecordFieldPtr const & pvRecordField){
+        dest->getPVRecord()->lock();
+        convert->copy(this->srcData,this->destData);
+        dest->getPVRecord()->unlock();
+    }
+
+    void dataPut(
+            PVRecordStructurePtr const & requested,
+            PVRecordFieldPtr const & pvRecordField){
+
+    }
 
     virtual void beginGroupPut(PVRecordPtr const & pvRecord){}
 
@@ -160,7 +176,7 @@ public:
 
 
     /**Link creation **/
-    void addLink(string from,string to,string specifications);
+    void addLink(string from, string to, string type, string specifications);
 
     void startPVAccess();
     void stopPVAccess();
@@ -181,7 +197,7 @@ public:
         if(!(from&&to&&type&&param)) throw runtime_error("Not all arguments present");
 
         //Invoke
-        ioc4::getIoc()->addLink(from->get(),to->get(),"");
+        ioc4::getIoc()->addLink(from->get(),to->get(),"PUT","");
 
         //Nothing to return
         return PVStructurePtr();
@@ -204,7 +220,7 @@ private:
     map<string,PVStructurePtr> stagingDb;
 
     //Links
-    vector<iocPutLinkPtr> putLinks;
+//    vector<iocPutLinkPtr> putLinks;
 
     // Factories
 //    map<string,function<iocRecordPtr(string,PVStructurePtr)>> recordFactories;
@@ -247,7 +263,7 @@ public:
     }
 
     static void addLink(string from, string to,string type, string args){
-        ioc4::getIoc()->addLink(from,to,args);
+        ioc4::getIoc()->addLink(from,to,type,args);
     }
 
     static void startPVA(){

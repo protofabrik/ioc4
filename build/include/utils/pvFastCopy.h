@@ -1,3 +1,6 @@
+#ifndef PVFASTCOPY_H_DEF
+#define PVFASTCOPY_H_DEF
+
 #include <pv/pvData.h>
 
 
@@ -33,4 +36,6 @@ public:
 
 
 };
+
+#endif
 

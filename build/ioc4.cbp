@@ -195,6 +195,48 @@
             <DistClean command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 clean" />
          </MakeCommands>
       </Target>
+      <Target title="tests_perf_lua">
+         <Option output="/home/tom/Git/projects/ioc4/build/tests_perf_lua" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/tom/Git/projects/ioc4/build" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/home/tom/Git/projects/ioc4/build/include" />
+            <Add directory="/opt/epics/base/include" />
+            <Add directory="/opt/epics/base/include/os/Linux" />
+            <Add directory="/opt/epics/e4/pvAccessCPP/include" />
+            <Add directory="/opt/epics/e4/pvDataCPP/include" />
+            <Add directory="/opt/epics/e4/pvDatabaseCPP/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 tests_perf_lua" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="tests_perf_lua/fast">
+         <Option output="/home/tom/Git/projects/ioc4/build/tests_perf_lua" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/tom/Git/projects/ioc4/build" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/home/tom/Git/projects/ioc4/build/include" />
+            <Add directory="/opt/epics/base/include" />
+            <Add directory="/opt/epics/base/include/os/Linux" />
+            <Add directory="/opt/epics/e4/pvAccessCPP/include" />
+            <Add directory="/opt/epics/e4/pvDataCPP/include" />
+            <Add directory="/opt/epics/e4/pvDatabaseCPP/include" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 tests_perf_lua/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/tom/Git/projects/ioc4/build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
       <Target title="tests_perf_syn">
          <Option output="/home/tom/Git/projects/ioc4/build/tests_perf_syn" prefix_auto="0" extension_auto="0" />
          <Option working_dir="/home/tom/Git/projects/ioc4/build" />
@@ -251,6 +293,8 @@
       <Unit filename="/home/tom/Git/projects/ioc4/std/luaRecord.cpp">
       </Unit>
       <Unit filename="/home/tom/Git/projects/ioc4/tests.cpp">
+      </Unit>
+      <Unit filename="/home/tom/Git/projects/ioc4/tests/test_perf_lua.cpp">
       </Unit>
       <Unit filename="/home/tom/Git/projects/ioc4/tests/tests_copy.cpp">
       </Unit>
