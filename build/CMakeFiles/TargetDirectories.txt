@@ -1,6 +1,0 @@
-/home/tom/Git/projects/ioc4/build/CMakeFiles/ioc4.dir
-/home/tom/Git/projects/ioc4/build/CMakeFiles/ioclua.dir
-/home/tom/Git/projects/ioc4/build/CMakeFiles/tests.dir
-/home/tom/Git/projects/ioc4/build/CMakeFiles/tests_copy.dir
-/home/tom/Git/projects/ioc4/build/CMakeFiles/tests_perf_lua.dir
-/home/tom/Git/projects/ioc4/build/CMakeFiles/tests_perf_syn.dir
